@@ -5,6 +5,13 @@ library(officer)
 library(flextable)
 library(poLCA)
 
+# R's default pdf() maps the hyphen to U+2212 (minus) in the embedded font, so
+# hyphenated labels such as "data-protection" render with a minus sign. quartz
+# keeps U+002D on macOS; cairo_pdf does elsewhere.
+pdf_dev <- if (capabilities("aqua")) {
+  function(filename, ...) grDevices::quartz(file = filename, type = "pdf", ...)
+} else grDevices::cairo_pdf
+
 #### Cleaning and basic descriptives ####
 Data <- import("Data.xlsx")
 table(Data$Finished)
@@ -174,7 +181,7 @@ ggplot(Data_HealthInfoEnv, aes(x=Q, y=Percentage, fill=Response)) +
         panel.grid.major.y = element_blank(),
         plot.margin = margin(10, 16, 8, 8))
 
-ggsave("../Figures/fig_importance_Q15.pdf", width = 12, height = 7.75)
+ggsave("../Figures/fig_importance_Q15.pdf", width = 12, height = 7.75, device = pdf_dev)
 ggsave("../Figures/fig_importance_Q15.png", width = 12, height = 7.75, dpi = 300, bg = "white")
 
 
@@ -233,7 +240,7 @@ ggplot(Data_Threats, aes(x=Q, y=Percentage, fill=Response)) +
         panel.grid.major.y = element_blank(),
         plot.margin = margin(10, 16, 8, 8))
 
-ggsave("../Figures/fig_threats_Q36.pdf", width = 12, height = 6.9)
+ggsave("../Figures/fig_threats_Q36.pdf", width = 12, height = 6.9, device = pdf_dev)
 ggsave("../Figures/fig_threats_Q36.png", width = 12, height = 6.9, dpi = 300, bg = "white")
 
 
@@ -285,7 +292,7 @@ ggplot(Data_AI_future, aes(x=Q, y=Percentage, fill=Response)) +
         panel.grid.major.y = element_blank(),
         plot.margin = margin(10, 16, 8, 8))
 
-ggsave("../Figures/fig_ai_future_Q21.pdf", width = 12, height = 5.2)
+ggsave("../Figures/fig_ai_future_Q21.pdf", width = 12, height = 5.2, device = pdf_dev)
 ggsave("../Figures/fig_ai_future_Q21.png", width = 12, height = 5.2, dpi = 300, bg = "white")
 
 # Generative AI by discipline: threat today (Q36_2) vs expectations for the next
@@ -365,7 +372,7 @@ ggplot(Data_AI_summaries, aes(x=Q, y=Percentage, fill=Response)) +
         panel.grid.major.y = element_blank(),
         plot.margin = margin(10, 16, 8, 8))
 
-ggsave("../Figures/fig_ai_summaries_Q43.pdf", width = 12, height = 6.05)
+ggsave("../Figures/fig_ai_summaries_Q43.pdf", width = 12, height = 6.05, device = pdf_dev)
 ggsave("../Figures/fig_ai_summaries_Q43.png", width = 12, height = 6.05, dpi = 300, bg = "white")
 
 
@@ -422,7 +429,7 @@ ggplot(Data_Tech, aes(x=Q, y=Percentage, fill=Response)) +
         panel.grid.major.y = element_blank(),
         plot.margin = margin(10, 16, 8, 8))
 
-ggsave("../Figures/fig_tech_effects_Q46.pdf", width = 12, height = 5.2)
+ggsave("../Figures/fig_tech_effects_Q46.pdf", width = 12, height = 5.2, device = pdf_dev)
 ggsave("../Figures/fig_tech_effects_Q46.png", width = 12, height = 5.2, dpi = 300, bg = "white")
 
 
@@ -472,7 +479,7 @@ ggplot(Data_Future, aes(x=Q25, y=Percentage, fill=Q25)) +
         panel.grid.major.x = element_blank(),
         plot.margin = margin(12, 12, 8, 8))
 
-ggsave("../Figures/fig_future_outlook_Q25.pdf", width = 12, height = 7)
+ggsave("../Figures/fig_future_outlook_Q25.pdf", width = 12, height = 7, device = pdf_dev)
 ggsave("../Figures/fig_future_outlook_Q25.png", width = 12, height = 7, dpi = 300, bg = "white")
 
 
@@ -492,9 +499,9 @@ Data$PrivateCompanies <- as.integer(grepl("Pressures from private companies", Da
 Data_Barriers <- tibble(
   Barrier = c("Funding opportunities",
               "Data access",
-              "Political pressures from government",
-              "Government control of funding",
-              "Privacy restrictions",
+              "Pressure to align with a political agenda",
+              "Government control of research funding",
+              "Privacy or data-protection restrictions",
               "Government censorship",
               "Government surveillance",
               "Pressures from private companies"),
@@ -535,7 +542,7 @@ ggplot(Data_Barriers, aes(x=Barrier, y=Percentage)) +
         panel.grid.major.y = element_blank(),
         plot.margin = margin(10, 24, 8, 8))
 
-ggsave("../Figures/fig_barriers_Q47.pdf", width = 12, height = 6.5)
+ggsave("../Figures/fig_barriers_Q47.pdf", width = 12, height = 6.5, device = pdf_dev)
 ggsave("../Figures/fig_barriers_Q47.png", width = 12, height = 6.5, dpi = 300, bg = "white")
 
 
@@ -568,7 +575,7 @@ summary(glm(Worsen ~ Pressured, data = Data, family = binomial)) # p = .32
 summary(glm(Worsen ~ Pressured + Developed, data = Data, family = binomial))
 
 
-##### Country-block items reported in SR2026.2 ####
+##### Country-block items reported in SR2026.3 ####
 
 # How easily can people find diverse viewpoints online regarding political issues?
 table(Data$Q_6_1)
